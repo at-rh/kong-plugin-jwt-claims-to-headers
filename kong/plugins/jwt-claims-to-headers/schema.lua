@@ -1,3 +1,5 @@
+local typedefs = require "kong.db.schema.typedefs"
+
 defaultHeaderPrefix = "X-Jwt-Claim-"
 
 --- Schema for config:
@@ -8,39 +10,61 @@ defaultHeaderPrefix = "X-Jwt-Claim-"
 -- be used in this plugin, to tell the plugin where to find the jwt.
 
 return {
-    no_consumer = true, -- this plugin will only be applied to Services or Routes,
+    name = "jwt-claims-to-headers",
     fields = {
-        header_prefix = {
-            type = "string",
-            default = defaultHeaderPrefix
+        {
+            -- this plugin will only be applied to Services or Routes
+            consumer = typedefs.no_consumer
         },
-        claims_to_headers_table = {
-            type = "table",
-            default = nil,
-            schema = {},
-            new_type = {
-                type = "map",
-                keys = {
-                    type = "string"
-                },
-                values = {
-                    type = "string"
+        {
+            config = {
+                type = "record",
+                fields = {
+                    {
+                        header_prefix = {
+                            type = "string",
+                            default = defaultHeaderPrefix
+                        }
+                    },
+                    {
+                        claims_to_headers_table = {
+                            type = "map",
+                            default = nil,
+                            -- Race condition error?
+                            keys = {
+                                type = "string"
+                            },
+                            values = {
+                                type = "string"
+                            }
+                        }
+                    },
+                    {
+                        uri_param_names = {
+                            type = "array",
+                            default = { "jwt" },
+                            elements = {
+                                type = "string"
+                            }
+                        }
+                    },
+                    {
+                        cookie_names = {
+                            type = "array",
+                            default = {},
+                            elements = {
+                                type = "string"
+                            }
+                        }
+                    }
                 }
             }
-        },
-        uri_param_names = {
-            type = "array",
-            default = {"jwt"}
-        },
-        cookie_names = {
-            type = "array",
-            default = {}
         }
     }
-
-    -- ,
-    -- self_check = function(schema, plugin_t, dao, is_updating)
-    --   -- perform any custom verification
-    --   return true
-    -- end
 }
+
+-- ,
+-- self_check = function(schema, plugin_t, dao, is_updating)
+--   -- perform any custom verification
+--   return true
+-- end

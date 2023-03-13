@@ -1,10 +1,10 @@
-local BasePlugin = require "kong.plugins.base_plugin"
 local jwtParser = require "kong.plugins.jwt.jwt_parser"
 
-local JwtClaimsToHeadersHandler = BasePlugin:extend()
-
--- ensure the priority is lower than the Jwt plugin, which has a priority of 1005
-JwtClaimsToHeadersHandler.PRIORITY = 10
+local JwtClaimsToHeadersHandler = {
+    VERSION  = "1.0.0",
+    -- ensure the priority is lower than the Jwt plugin, which has a priority of 1450
+    PRIORITY = 1449
+}
 
 -- local functions ------------------------------
 
@@ -64,7 +64,7 @@ local function header_for_claim(claim_name, config)
     -- Otherwise, return a concatenation of the header_prefix and the key name.
     -- The header is specified in config.header_prefix.
 
-    local header = nil
+    local header
     local claims_to_headers_table = config.claims_to_headers_table
     local header_prefix = config.header_prefix or defaultHeaderPrefix
 
@@ -94,10 +94,6 @@ local function claims(jwt, config)
     return claims_table, err
 end
 
-function JwtClaimsToHeadersHandler:new()
-    JwtClaimsToHeadersHandler.super.new(self, "jwt-claims-to-headers")
-end
-
 -- Plugin functions ------------------------------
 
 --- Access
@@ -105,7 +101,6 @@ end
 -- If there is no jwt, log an info message and return
 -- @param config Plugin configuration
 function JwtClaimsToHeadersHandler:access(config)
-    JwtClaimsToHeadersHandler.super.access(self)
 
     local jwt, err = retrieve_token(config)
     if err ~= nil then
